@@ -25,7 +25,7 @@ jobs:
       shell: cmd
       run: |
         pyinstaller --onefile --noconsole ^
-          --add-data "./" ^
+          --add-data "./:./" ^
           menu.py
         
     - name: Upload executable folder
