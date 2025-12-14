@@ -4,10 +4,25 @@ import threading
 import time
 
 class GameClient:
-    def __init__(self, server_host='127.0.0.1', server_port=5555):
+    def __init__(self, server_address='127.0.0.1:5555'):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.settimeout(0.1)
-        self.server_addr = (server_host, server_port)
+        
+        # Parse server address (handle both "host:port" and "host" formats)
+        if ':' in server_address:
+            host, port_str = server_address.rsplit(':', 1)
+            try:
+                port = int(port_str)
+            except ValueError:
+                print(f"Invalid port in '{server_address}', using default 5555")
+                host = server_address
+                port = 5555
+        else:
+            host = server_address
+            port = 5555
+        
+        self.server_addr = (host, port)
+        print(f"Client configured for {host}:{port}")
         
         self.player_id = None
         self.other_players = {}  # {id: {'x', 'y', 'angle', 'vx', 'vy', 'crashes'}}
@@ -26,7 +41,14 @@ class GameClient:
             'y': spawn_y,
             'angle': spawn_angle
         }
-        self.sock.sendto(json.dumps(join_msg).encode('utf-8'), self.server_addr)
+        try:
+            self.sock.sendto(json.dumps(join_msg).encode('utf-8'), self.server_addr)
+        except socket.gaierror as e:
+            print(f"Failed to resolve server address: {e}")
+            return False
+        except Exception as e:
+            print(f"Connection error: {e}")
+            return False
         
         # Wait for welcome message (with timeout)
         start_time = time.time()

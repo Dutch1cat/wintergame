@@ -51,7 +51,7 @@ tiles = {
 font_size = int(22 * SCALE)
 font = pygame.font.SysFont("consolas", font_size)
 
-def game_loop(multiplayer=False, server_ip='127.0.0.1'):
+def game_loop(multiplayer=False, server_ip='rke2.fsmn.xyz:5555'):
     # Initialize network client if multiplayer
     client = None
     if multiplayer:
