@@ -2,7 +2,7 @@ import pygame, os
 from pygame.math import Vector2
 import math
 import os, sys
-
+# t
 def resource_path(relative_path):
     # Funziona sia in sviluppo che in build
     if hasattr(sys, '_MEIPASS'):
