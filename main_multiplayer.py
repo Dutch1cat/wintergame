@@ -140,7 +140,7 @@ def game_loop(multiplayer=False, server_ip='rke2.fsmn.xyz:5555'):
 
     def draw_hud(time_sec):
         t_ms = int(time_sec*1000)
-        text = font.render(f"Tempo: {t_ms//1000}.{t_ms%1000:03d}s", True, (230,230,255))
+        text = font.render(f"Time: {t_ms//1000}.{t_ms%1000:03d}s", True, (230,230,255))
         screen.blit(text, (int(20*SCALE), int(20*SCALE)))
         speed = math.hypot(skater.vx, skater.vy)
         v_text = font.render(f"Vel: {speed:05.2f}", True, (230,230,255))
@@ -157,8 +157,8 @@ def game_loop(multiplayer=False, server_ip='rke2.fsmn.xyz:5555'):
         screen.fill((0,0,0))
         big_font_size = int(40 * SCALE)
         big_font = pygame.font.SysFont("consolas", big_font_size)
-        text1 = big_font.render("Gara finita!", True, (255,255,255))
-        text2 = big_font.render(f"Tempo: {final_time:.2f} s", True, (255,255,255))
+        text1 = big_font.render("Race finished!", True, (255,255,255))
+        text2 = big_font.render(f"Time: {final_time:.2f} s", True, (255,255,255))
         text3 = big_font.render(f"Crash: {crashes}", True, (255,255,255))
         screen.blit(text1, (WIDTH//2 - text1.get_width()//2, HEIGHT//2 - int(60*SCALE)))
         screen.blit(text2, (WIDTH//2 - text2.get_width()//2, HEIGHT//2))

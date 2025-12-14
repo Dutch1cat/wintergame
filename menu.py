@@ -1,5 +1,5 @@
 import pygame, sys, os, json
-import main as m, editor as ed, main_multiplayer as mm
+import main as m, editor as ed, main_multiplayer as mm, local as lc
 import tkinter as tk
 from tkinter import simpledialog
 
@@ -92,28 +92,36 @@ while running:
     if state=="main":
         # Calculate text widths for proper centering
         play_width = font.render("Play", True, (255,255,255)).get_width()
-        multiplayer_width = font.render("Multiplayer", True, (255,255,255)).get_width()
+        multiplayer_width = font.render("Online", True, (255,255,255)).get_width()
+        local_width = font.render("Local", True, (255,255,255)).get_width()
         editor_width = font.render("Editor", True, (255,255,255)).get_width()
         settings_width = font.render("Settings", True, (255,255,255)).get_width()
         
         r1 = draw_text("Play", WIDTH//2 - play_width//2, HEIGHT//2-int(120*SCALE), 
                       pygame.Rect(WIDTH//2 - play_width//2, HEIGHT//2-int(120*SCALE),
                                   play_width, int(35*SCALE)).collidepoint(mx,my))
-        r2 = draw_text("Multiplayer", WIDTH//2 - multiplayer_width//2, HEIGHT//2-int(60*SCALE), 
+        r2 = draw_text("Online", WIDTH//2 - multiplayer_width//2, HEIGHT//2-int(60*SCALE), 
                       pygame.Rect(WIDTH//2 - multiplayer_width//2, HEIGHT//2-int(60*SCALE),
                                   multiplayer_width, int(35*SCALE)).collidepoint(mx,my))
-        r3 = draw_text("Editor", WIDTH//2 - editor_width//2, HEIGHT//2, 
-                      pygame.Rect(WIDTH//2 - editor_width//2, HEIGHT//2,
-                                  editor_width, int(35*SCALE)).collidepoint(mx,my))
-        r4 = draw_text("Settings", WIDTH//2 - settings_width//2, HEIGHT//2+int(60*SCALE), 
-                      pygame.Rect(WIDTH//2 - settings_width//2, HEIGHT//2+int(60*SCALE),
-                                  settings_width, int(35*SCALE)).collidepoint(mx,my))
+        r5 = draw_text("Local", WIDTH//2 - local_width//2, HEIGHT//2, 
+              pygame.Rect(WIDTH//2 - local_width//2, HEIGHT//2,
+                          local_width, int(35*SCALE)).collidepoint(mx,my))
+
+        r3 = draw_text("Editor", WIDTH//2 - editor_width//2, HEIGHT//2+int(60*SCALE), 
+                    pygame.Rect(WIDTH//2 - editor_width//2, HEIGHT//2+int(60*SCALE),
+                                editor_width, int(35*SCALE)).collidepoint(mx,my))
+
+        r4 = draw_text("Settings", WIDTH//2 - settings_width//2, HEIGHT//2+int(120*SCALE), 
+                    pygame.Rect(WIDTH//2 - settings_width//2, HEIGHT//2+int(120*SCALE),
+                                settings_width, int(35*SCALE)).collidepoint(mx,my))
         if clicked_this_frame:
             if r1.collidepoint(mx,my): 
                 state="play"
                 scroll_offset=0
             elif r2.collidepoint(mx,my):
                 mm.game_loop(multiplayer=True)
+            elif r5.collidepoint(mx,my): 
+                lc.game_loop()
             elif r3.collidepoint(mx,my): 
                 state="editor"
                 scroll_offset=0
@@ -162,8 +170,6 @@ while running:
                         pygame.Rect(int(100*SCALE),int(100*SCALE),int(200*SCALE),int(30*SCALE)).collidepoint(mx,my))
         opt2 = draw_text("1920x1080", int(100*SCALE), int(150*SCALE), 
                         pygame.Rect(int(100*SCALE),int(150*SCALE),int(200*SCALE),int(30*SCALE)).collidepoint(mx,my))
-        opt3 = draw_text("2560x1440", int(100*SCALE), int(200*SCALE), 
-                        pygame.Rect(int(100*SCALE),int(200*SCALE),int(200*SCALE),int(30*SCALE)).collidepoint(mx,my))
         draw_text("Restart required after changing", int(100*SCALE), int(280*SCALE), False)
         if clicked_this_frame:
             if opt1.collidepoint(mx,my): 
@@ -172,9 +178,6 @@ while running:
             elif opt2.collidepoint(mx,my): 
                 save_settings(2)
                 draw_text("Saved!", int(350*SCALE), int(150*SCALE), False)
-            elif opt3.collidepoint(mx,my): 
-                save_settings(3)
-                draw_text("Saved!", int(350*SCALE), int(200*SCALE), False)
 
     pygame.display.flip()
     clock.tick(60)
