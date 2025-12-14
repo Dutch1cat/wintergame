@@ -1,5 +1,11 @@
 import pygame, json, sys
+import os
 
+def resource_path(relative_path):
+    # Funziona sia in sviluppo che in build
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 # Load resolution setting
 def load_resolution():
     try:
@@ -27,7 +33,7 @@ clock = pygame.time.Clock()
 
 # Load and scale tiles
 def load_scaled_tile(path):
-    img = pygame.image.load(path)
+    img = pygame.image.load(resource_path(path))
     if SCALE != 1.0:
         new_size = (int(img.get_width() * SCALE), int(img.get_height() * SCALE))
         img = pygame.transform.scale(img, new_size)

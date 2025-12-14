@@ -1,12 +1,20 @@
 import pygame, os
 from pygame.math import Vector2
 import math
+import os, sys
+
+def resource_path(relative_path):
+    # Funziona sia in sviluppo che in build
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
 
 def load_frames(path, scale=1.0):
     frames = []
     for fname in sorted(os.listdir(path)):
         if fname.endswith(".png"):
-            img = pygame.image.load(os.path.join(path, fname)).convert_alpha()
+            img = pygame.image.load(resource_path(os.path.join(path, fname))).convert_alpha()
             if scale != 1.0:
                 new_size = (int(img.get_width() * scale), int(img.get_height() * scale))
                 img = pygame.transform.scale(img, new_size)
