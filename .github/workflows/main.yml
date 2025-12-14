@@ -24,7 +24,7 @@ jobs:
     - name: Build executable
       shell: cmd
       run: |
-        pyinstaller --noconsole ^
+        pyinstaller --onefile --noconsole ^
           --add-data "./" ^
           menu.py
         
