@@ -5,10 +5,12 @@ from tkinter import simpledialog
 
 def ask_track_name():
     root = tk.Tk()
-    root.withdraw()  # nasconde la finestra principale
-    name = simpledialog.askstring("New Track", "Inserisci il nome della nuova pista:")
+    root.withdraw()
+    dialog = simpledialog._QueryString("New Track", "name of the new track (use tab to move between the buttons and enter to press one):", parent=root)
+    root.wait_window(dialog)
     root.destroy()
-    return name
+    return dialog.result
+
 
 pygame.init()
 
@@ -121,7 +123,7 @@ while running:
             elif r2.collidepoint(mx,my):
                 mm.game_loop(multiplayer=True)
             elif r5.collidepoint(mx,my): 
-                lc.game_loop()
+                state="local"
             elif r3.collidepoint(mx,my): 
                 state="editor"
                 scroll_offset=0
@@ -137,6 +139,18 @@ while running:
                            pygame.Rect(int(100*SCALE),y,int(300*SCALE),int(30*SCALE)).collidepoint(mx,my))
             if clicked_this_frame and rect.collidepoint(mx,my):
                 run_game(track)
+            y+=spacing
+    elif state=="local":
+        draw_text("Select Track (ESC to return)", int(100*SCALE), int(10*SCALE), False)
+        y=int(40*SCALE)-scroll_offset
+        spacing = int(40*SCALE)
+        for track in list_tracks():
+            rect = draw_text(track, int(100*SCALE), y, 
+                           pygame.Rect(int(100*SCALE),y,int(300*SCALE),int(30*SCALE)).collidepoint(mx,my))
+            if clicked_this_frame and rect.collidepoint(mx,my):
+                with open("selected.txt", "w") as f:
+                    f.write(track)
+                lc.game_loop()
             y+=spacing
 
     elif state=="editor":
