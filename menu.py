@@ -5,11 +5,14 @@ from tkinter import simpledialog
 
 def ask_track_name():
     root = tk.Tk()
-    root.withdraw()
-    dialog = simpledialog._QueryString("New Track", "name of the new track (use tab to move between the buttons and enter to press one):", parent=root)
-    root.wait_window(dialog)
+    root.withdraw()  # nasconde la finestra principale
+    name = simpledialog.askstring(
+        "Track name",
+        "Name of the new track (use tab to move between the buttons and enter to press one):",
+        parent=root
+    )
     root.destroy()
-    return dialog.result
+    return name
 
 
 pygame.init()
@@ -36,16 +39,23 @@ clock = pygame.time.Clock()
 
 font_size = int(28 * SCALE)
 font = pygame.font.SysFont("consolas", font_size)
+font2 = pygame.font.Font("assets/fonts/mainfont.ttf", font_size)
+font3 = pygame.font.Font("assets/fonts/titlefont.otf", int(64 * SCALE))
 
 # Menu states
 state = "main"  # "main", "play", "editor", "settings"
 scroll_offset = 0
 
-def draw_text(text, x, y, hover=False):
-    color = (255,255,255) if not hover else (200,200,50)
-    surf = font.render(text, True, color)
-    screen.blit(surf, (int(x), int(y)))
-    return surf.get_rect(topleft=(int(x), int(y)))
+def draw_text(text, x, y, hover=False, title=False):
+    if title:
+        surf = font3.render(text, True, (255,255,255))
+        screen.blit(surf, (int(x), int(y)))
+        return surf.get_rect(topleft=(int(x), int(y)))
+    else:
+        color = (255,255,255) if not hover else (200,200,50)
+        surf = font2.render(text, True, color)
+        screen.blit(surf, (int(x), int(y)))
+        return surf.get_rect(topleft=(int(x), int(y)))
 
 def list_tracks():
     files = [f for f in os.listdir("maps") if f.endswith(".json")]
@@ -93,12 +103,17 @@ while running:
 
     if state=="main":
         # Calculate text widths for proper centering
-        play_width = font.render("Play", True, (255,255,255)).get_width()
-        multiplayer_width = font.render("Online", True, (255,255,255)).get_width()
-        local_width = font.render("Local", True, (255,255,255)).get_width()
-        editor_width = font.render("Editor", True, (255,255,255)).get_width()
-        settings_width = font.render("Settings", True, (255,255,255)).get_width()
-        
+        title_width = font2.render("Ice Drifter", True, (255,255,255)).get_width()
+        play_width = font2.render("Play", True, (255,255,255)).get_width()
+        multiplayer_width = font2.render("Online", True, (255,255,255)).get_width()
+        local_width = font2.render("Local", True, (255,255,255)).get_width()
+        editor_width = font2.render("Editor", True, (255,255,255)).get_width()
+        settings_width = font2.render("Settings", True, (255,255,255)).get_width()
+        exit_width = font2.render("Exit", True, (255,255,255)).get_width()
+
+        title = draw_text("Ice Drifter", WIDTH//2 - title_width//2-(40*SCALE), HEIGHT//2 - int(200*SCALE), title=True)
+
+
         r1 = draw_text("Play", WIDTH//2 - play_width//2, HEIGHT//2-int(120*SCALE), 
                       pygame.Rect(WIDTH//2 - play_width//2, HEIGHT//2-int(120*SCALE),
                                   play_width, int(35*SCALE)).collidepoint(mx,my))
@@ -116,6 +131,12 @@ while running:
         r4 = draw_text("Settings", WIDTH//2 - settings_width//2, HEIGHT//2+int(120*SCALE), 
                     pygame.Rect(WIDTH//2 - settings_width//2, HEIGHT//2+int(120*SCALE),
                                 settings_width, int(35*SCALE)).collidepoint(mx,my))
+        
+        r6 = draw_text("Exit", WIDTH//2 - exit_width//2, HEIGHT//2+int(180*SCALE), 
+                    pygame.Rect(WIDTH//2 - exit_width//2, HEIGHT//2+int(180*SCALE),
+                                exit_width, int(35*SCALE)).collidepoint(mx,my))
+    
+
         if clicked_this_frame:
             if r1.collidepoint(mx,my): 
                 state="play"
@@ -129,6 +150,9 @@ while running:
                 scroll_offset=0
             elif r4.collidepoint(mx,my): 
                 state="settings"
+            
+            elif r6.collidepoint(mx,my): 
+                running=False
 
     elif state=="play":
         draw_text("Select Track (ESC to return)", int(100*SCALE), int(10*SCALE), False)
