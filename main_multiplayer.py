@@ -211,16 +211,16 @@ def game_loop(multiplayer=False, server_ip='rke2.fsmn.xyz:5555'):
             # Update/create other players
             for pid, data in other_players_data.items():
                 if pid not in other_skaters:
+                    # Create new player at their current position
                     other_skaters[pid] = Skater((data['x'], data['y']), SCALE)
-                else:
-                    # Smooth interpolation for other players
-                    other_skaters[pid].pos.x = data['x']
-                    other_skaters[pid].pos.y = data['y']
-                    other_skaters[pid].angle = data['angle']
-                    other_skaters[pid].vx = data.get('vx', 0)
-                    other_skaters[pid].vy = data.get('vy', 0)
-                    other_skaters[pid].crashes = data.get('crashes', 0)
-                    other_skaters[pid].rect.center = other_skaters[pid].pos
+                
+                # Always update position directly
+                other_skaters[pid].pos.x = data['x']
+                other_skaters[pid].pos.y = data['y']
+                other_skaters[pid].angle = data['angle']
+                other_skaters[pid].vx = data.get('vx', 0)
+                other_skaters[pid].vy = data.get('vy', 0)
+                other_skaters[pid].crashes = data.get('crashes', 0)
 
         race_time += dt
 
@@ -241,6 +241,7 @@ def game_loop(multiplayer=False, server_ip='rke2.fsmn.xyz:5555'):
         skater.draw(screen, cam_x, cam_y)
         draw_hud(race_time)
         pygame.display.flip()
+
 
     # Disconnect from server
     if multiplayer and client:
