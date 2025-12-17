@@ -221,6 +221,17 @@ def game_loop(multiplayer=False, server_ip='rke2.fsmn.xyz:5555'):
                 other_skaters[pid].vx = data.get('vx', 0)
                 other_skaters[pid].vy = data.get('vy', 0)
                 other_skaters[pid].crashes = data.get('crashes', 0)
+                
+                # Update animation for other players
+                other_skaters[pid].update_animation(dt)
+                
+                # Always update position directly
+                other_skaters[pid].pos.x = data['x']
+                other_skaters[pid].pos.y = data['y']
+                other_skaters[pid].angle = data['angle']
+                other_skaters[pid].vx = data.get('vx', 0)
+                other_skaters[pid].vy = data.get('vy', 0)
+                other_skaters[pid].crashes = data.get('crashes', 0)
 
         race_time += dt
 

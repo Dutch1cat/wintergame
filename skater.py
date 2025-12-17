@@ -14,7 +14,7 @@ def load_frames(path, scale=1.0):
     frames = []
     for fname in sorted(os.listdir(path)):
         if fname.endswith(".png"):
-            img = pygame.image.load(resource_path(resource_path(os.path.join(path, fname)))).convert_alpha()
+            img = pygame.image.load(resource_path(os.path.join(path, fname))).convert_alpha()
             if scale != 1.0:
                 new_size = (int(img.get_width() * scale), int(img.get_height() * scale))
                 img = pygame.transform.scale(img, new_size)
@@ -84,9 +84,24 @@ class Skater:
             self.frame_timer = 0
             self.frame_index = (self.frame_index + 1) % len(self.current_frames)
 
+    def update_animation(self, dt):
+        """Update animation frames for remote players"""
+        speed = math.hypot(self.vx, self.vy)
+        
+        # Animation threshold scaled
+        if speed > 20 * self.scale:
+            self.current_frames = self.sprint_frames
+        else:
+            self.current_frames = self.idle_frames
+
+        self.frame_timer += dt
+        if self.frame_timer >= self.frame_speed:
+            self.frame_timer = 0
+            self.frame_index = (self.frame_index + 1) % len(self.current_frames)
+
     def draw(self, surface, cam_x, cam_y):
         frame = self.current_frames[self.frame_index]
         rotated = pygame.transform.rotate(frame, -(self.angle))
-        rect = rotated.get_rect(center=(self.rect.centerx - cam_x,
-                                        self.rect.centery - cam_y))
+        rect = rotated.get_rect(center=(self.pos.x - cam_x,
+                                        self.pos.y - cam_y))
         surface.blit(rotated, rect)
