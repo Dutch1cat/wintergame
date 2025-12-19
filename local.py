@@ -1,6 +1,8 @@
 import pygame, json, sys, math
 from local_skater import LocalSkater
 import os
+import random
+from songfunction import play_random, play_menu_music, stop_music, win, crash
 
 def resource_path(relative_path):
     # Funziona sia in sviluppo che in build
@@ -58,6 +60,7 @@ font_size = int(18 * SCALE)
 font = pygame.font.SysFont("consolas", font_size)
 
 def game_loop():
+    play_random()
     # Load map
     try:
         with open("selected.txt", "r") as f:
@@ -132,6 +135,7 @@ def game_loop():
                         player.pos.y = cone_rect.bottom + player.rect.height//2
                     player.rect.center = player.pos
                     player.crashes += 1
+                    crash()
             elif "finish" in tile and not player.finished:
                 return True
         return False
@@ -166,6 +170,7 @@ def game_loop():
             surface.blit(finished_text, (x_offset + int(10*SCALE), y_offset + int(110*SCALE)))
 
     def show_stats(p1_time, p1_crashes, p2_time, p2_crashes):
+        win()
         screen.fill((0,0,0))
         big_font_size = int(40 * SCALE)
         small_font_size = int(30 * SCALE)
@@ -218,6 +223,8 @@ def game_loop():
     # Loop
     running = True
     race_time = 0.0
+    first = True
+
     
     while running:
         dt = clock.tick(FPS)/1000
@@ -226,7 +233,11 @@ def game_loop():
             if e.type == pygame.QUIT:
                 running = False
             if e.type == pygame.KEYDOWN:
+                if first:
+                    race_time = 0.0
+                    first = False
                 if e.key == pygame.K_ESCAPE:
+                    play_menu_music()
                     running = False
 
         keys = pygame.key.get_pressed()
@@ -234,6 +245,8 @@ def game_loop():
         # Update players
         player1.update(keys, dt)
         player2.update(keys, dt)
+
+        
         
         # Apply surface effects
         if apply_surface_effects(player1) and not player1.finished:
@@ -248,8 +261,10 @@ def game_loop():
 
         # Check if both finished
         if player1.finished and player2.finished:
+            stop_music()
             show_stats(player1.finish_time, player1.crashes, 
                       player2.finish_time, player2.crashes)
+            play_menu_music()
             running = False
             continue
 

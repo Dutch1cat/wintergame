@@ -2,6 +2,7 @@ import pygame, sys, os, json
 import main as m, editor as ed, main_multiplayer as mm, local as lc
 import tkinter as tk
 from tkinter import simpledialog
+from songfunction import play_menu_music
 
 def ask_track_name():
     root = tk.Tk()
@@ -20,19 +21,22 @@ pygame.init()
 def load_resolution():
     try:
         with open("settings.txt", "r") as f:
-            res_mode = int(f.readline().strip())
+            lines = f.readlines()
+            res_mode = int(lines[0].strip())
+            volume = float(lines[1].strip()) if len(lines) > 1 else 0.5
+            
             if res_mode == 1:
-                return 960, 540, 1.0
+                return 960, 540, 1.0, volume
             elif res_mode == 2:
-                return 1920, 1080, 2.0
+                return 1920, 1080, 2.0, volume
             elif res_mode == 3:
-                return 2560, 1440, 2.667
+                return 2560, 1440, 2.667, volume
             else:
-                return 960, 540, 1.0
+                return 960, 540, 1.0, volume
     except:
-        return 960, 540, 1.0
+        return 960, 540, 1.0, 0.5
 
-WIDTH, HEIGHT, SCALE = load_resolution()
+WIDTH, HEIGHT, SCALE, VOLUME = load_resolution()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Ice Drift - Menu")
 clock = pygame.time.Clock()
@@ -42,9 +46,13 @@ font = pygame.font.SysFont("consolas", font_size)
 font2 = pygame.font.Font("assets/fonts/mainfont.ttf", font_size)
 font3 = pygame.font.Font("assets/fonts/titlefont.otf", int(64 * SCALE))
 
+play_menu_music()
+
 # Menu states
 state = "main"  # "main", "play", "editor", "settings"
 scroll_offset = 0
+current_volume = VOLUME
+dragging_slider = False
 
 def draw_text(text, x, y, hover=False, title=False):
     if title:
@@ -56,6 +64,24 @@ def draw_text(text, x, y, hover=False, title=False):
         surf = font2.render(text, True, color)
         screen.blit(surf, (int(x), int(y)))
         return surf.get_rect(topleft=(int(x), int(y)))
+
+def draw_slider(x, y, width, value):
+    # Background bar
+    bar_rect = pygame.Rect(int(x), int(y), int(width), int(10 * SCALE))
+    pygame.draw.rect(screen, (100, 100, 100), bar_rect)
+    
+    # Filled portion
+    filled_width = int(width * value)
+    filled_rect = pygame.Rect(int(x), int(y), filled_width, int(10 * SCALE))
+    pygame.draw.rect(screen, (200, 200, 50), filled_rect)
+    
+    # Handle
+    handle_x = int(x + width * value)
+    handle_rect = pygame.Rect(handle_x - int(8 * SCALE), int(y - 5 * SCALE), 
+                               int(16 * SCALE), int(20 * SCALE))
+    pygame.draw.rect(screen, (255, 255, 255), handle_rect)
+    
+    return bar_rect, handle_rect
 
 def list_tracks():
     files = [f for f in os.listdir("maps") if f.endswith(".json")]
@@ -73,9 +99,10 @@ def run_editor(track):
         f.write(track)
     ed.game_loop()
 
-def save_settings(option):
+def save_settings(option, volume):
     with open("settings.txt","w") as f:
-        f.write(str(option))
+        f.write(str(option) + "\n")
+        f.write(str(volume))
 
 running=True
 last_click = False  # Track click state to avoid multiple triggers
@@ -91,6 +118,9 @@ while running:
         if e.type==pygame.MOUSEBUTTONDOWN:
             if e.button==4: scroll_offset = max(0, scroll_offset-int(40*SCALE))
             if e.button==5: scroll_offset += int(40*SCALE)
+        if e.type==pygame.MOUSEBUTTONUP:
+            if e.button==1:
+                dragging_slider = False
 
     screen.fill((30,30,30))
 
@@ -203,19 +233,51 @@ while running:
                 run_editor(name)
 
     elif state=="settings":
-        draw_text("Resolution Settings (ESC to return)", int(100*SCALE), int(50*SCALE), False)
-        opt1 = draw_text("960x540", int(100*SCALE), int(100*SCALE), 
-                        pygame.Rect(int(100*SCALE),int(100*SCALE),int(200*SCALE),int(30*SCALE)).collidepoint(mx,my))
-        opt2 = draw_text("1920x1080", int(100*SCALE), int(150*SCALE), 
-                        pygame.Rect(int(100*SCALE),int(150*SCALE),int(200*SCALE),int(30*SCALE)).collidepoint(mx,my))
-        draw_text("Restart required after changing", int(100*SCALE), int(280*SCALE), False)
+        draw_text("Settings (ESC to return)", int(100*SCALE), int(50*SCALE), False)
+        
+        # Resolution settings
+        draw_text("Resolution:", int(100*SCALE), int(100*SCALE), False)
+        opt1 = draw_text("960x540", int(100*SCALE), int(140*SCALE), 
+                        pygame.Rect(int(100*SCALE),int(140*SCALE),int(200*SCALE),int(30*SCALE)).collidepoint(mx,my))
+        opt2 = draw_text("1920x1080", int(100*SCALE), int(180*SCALE), 
+                        pygame.Rect(int(100*SCALE),int(180*SCALE),int(200*SCALE),int(30*SCALE)).collidepoint(mx,my))
+        
+        # Volume slider
+        draw_text("Volume:", int(100*SCALE), int(250*SCALE), False)
+        slider_x = int(100*SCALE)
+        slider_y = int(290*SCALE)
+        slider_width = int(300*SCALE)
+        
+        bar_rect, handle_rect = draw_slider(slider_x, slider_y, slider_width, current_volume)
+        
+        # Display volume percentage
+        volume_percent = int(current_volume * 100)
+        draw_text(f"{volume_percent}", slider_x + slider_width + int(20*SCALE), int(280*SCALE), False)
+        
+        # Handle slider interaction
+        if click and (handle_rect.collidepoint(mx, my) or dragging_slider):
+            dragging_slider = True
+            # Calculate new volume based on mouse position
+            new_volume = max(0.0, min(1.0, (mx - slider_x) / slider_width))
+            current_volume = new_volume
+            # Save immediately while dragging
+            with open("settings.txt", "r") as f:
+                lines = f.readlines()
+            res_mode = int(lines[0].strip()) if lines else 1
+            save_settings(res_mode, current_volume)
+            # Update music volume
+            pygame.mixer.music.set_volume(current_volume)
+        
+        
+        draw_text("Restart required after changing resolution", int(100*SCALE), int(360*SCALE), False)
+        
         if clicked_this_frame:
             if opt1.collidepoint(mx,my): 
-                save_settings(1)
-                draw_text("Saved!", int(350*SCALE), int(100*SCALE), False)
+                save_settings(1, current_volume)
+                draw_text("Saved!", int(350*SCALE), int(140*SCALE), False)
             elif opt2.collidepoint(mx,my): 
-                save_settings(2)
-                draw_text("Saved!", int(350*SCALE), int(150*SCALE), False)
+                save_settings(2, current_volume)
+                draw_text("Saved!", int(350*SCALE), int(180*SCALE), False)
 
     pygame.display.flip()
     clock.tick(60)

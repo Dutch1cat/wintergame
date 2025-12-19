@@ -1,6 +1,8 @@
 import pygame, json, sys, math
 from skater import Skater
 import os
+import random
+from songfunction import play_random, play_menu_music, stop_music, win, crash
 
 def resource_path(relative_path):
     # Funziona sia in sviluppo che in build
@@ -56,7 +58,12 @@ tiles = {
 font_size = int(22 * SCALE)
 font = pygame.font.SysFont("consolas", font_size)
 
+
+
+
+
 def game_loop():
+    play_random()
     # Load map INSIDE game_loop so it reads the correct selected.txt
     try:
         with open("selected.txt", "r") as f:
@@ -84,6 +91,12 @@ def game_loop():
 
     # Player
     skater = Skater(start_pos, SCALE)
+
+
+    race_time = 0.0
+    started = False
+    finished = False
+    running = True
 
     def draw_map(cam_x, cam_y):
         start_x = max(0, cam_x//TILESIZE)
@@ -123,6 +136,7 @@ def game_loop():
                         skater.pos.y = cone_rect.bottom + skater.rect.height//2
                     skater.rect.center = skater.pos
                     skater.crashes += 1
+                    crash()
             elif "finish" in tile:
                 return True
         return False
@@ -138,6 +152,7 @@ def game_loop():
         screen.blit(c_text, (int(20*SCALE), int(80*SCALE)))
 
     def show_stats(final_time, crashes):
+        win()
         screen.fill((0,0,0))
         big_font_size = int(40 * SCALE)
         big_font = pygame.font.SysFont("consolas", big_font_size)
@@ -159,6 +174,7 @@ def game_loop():
     running=True
     race_time=0.0
     finished=False
+    first=True
     while running and not finished:
         dt = clock.tick(FPS)/1000
         for e in pygame.event.get():
@@ -166,6 +182,7 @@ def game_loop():
                 running=False
             if e.type==pygame.KEYDOWN:
                 if e.key==pygame.K_ESCAPE:
+                    play_menu_music()
                     running=False
 
         keys = pygame.key.get_pressed()
@@ -174,6 +191,9 @@ def game_loop():
             finished=True
 
         race_time += dt
+        if first:
+            first=False
+            race_time=0.0
 
         cam_x = int(skater.pos.x - WIDTH//2)
         cam_y = int(skater.pos.y - HEIGHT//2)
@@ -188,7 +208,10 @@ def game_loop():
 
     # Show final stats
     if finished:
+        stop_music()
+        
         show_stats(race_time, skater.crashes)
+        play_menu_music()
 
 if __name__ == "__main__":
     game_loop()

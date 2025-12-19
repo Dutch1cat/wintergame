@@ -2,6 +2,7 @@ import pygame, json, sys, math
 from skater import Skater
 from client import GameClient
 import os
+from songfunction import play_random, play_menu_music, stop_music, win, crash
 
 def resource_path(relative_path):
     # Funziona sia in sviluppo che in build
@@ -60,6 +61,7 @@ font = pygame.font.SysFont("consolas", font_size)
 
 def game_loop(multiplayer=False, server_ip='rke2.fsmn.xyz:5555'):
     # Initialize network client if multiplayer
+    play_random()
     client = None
     if multiplayer:
         client = GameClient(server_ip)
@@ -141,6 +143,7 @@ def game_loop(multiplayer=False, server_ip='rke2.fsmn.xyz:5555'):
                         skater.pos.y = cone_rect.bottom + skater.rect.height//2
                     skater.rect.center = skater.pos
                     skater.crashes += 1
+                    crash()
             elif "finish" in tile:
                 return True
         return False
@@ -158,6 +161,7 @@ def game_loop(multiplayer=False, server_ip='rke2.fsmn.xyz:5555'):
             screen.blit(p_text, (int(20*SCALE), int(110*SCALE)))
 
     def show_stats(final_time, crashes):
+        win()
         screen.fill((0,0,0))
         big_font_size = int(40 * SCALE)
         big_font = pygame.font.SysFont("consolas", big_font_size)
@@ -185,6 +189,7 @@ def game_loop(multiplayer=False, server_ip='rke2.fsmn.xyz:5555'):
                 running=False
             if e.type==pygame.KEYDOWN:
                 if e.key==pygame.K_ESCAPE:
+                    play_menu_music()
                     running=False
 
         keys = pygame.key.get_pressed()
@@ -260,7 +265,9 @@ def game_loop(multiplayer=False, server_ip='rke2.fsmn.xyz:5555'):
 
     # Show final stats
     if finished:
+        stop_music()
         show_stats(race_time, skater.crashes)
+        play_menu_music()
 
 if __name__ == "__main__":
     # Ask user if multiplayer
